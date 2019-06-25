@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style>
+        .autoResizeImage {
+            max-width: 75%;
+            height: auto;
+            width: 75%;
+        }
+
+        .autoResizeTall {
+            max-width: 27%;
+            height: auto;
+            width: 75%;
+        }
+
+        th {
+            font-size: 24px;
+        }
+
+        td {
+            align="center"
+        }
+    </style>
+</head>
+<body>
+    <div style="text-align:center">
+        <h1>CS 194-26 Image Manipulation and Computational Photography</h1>
+        <h2>Andrew Reardon</h2>
+        <h3>Project 1</h3>
+    </div>
+    <hr>
+    <h2>Overview</h2>
+    <p>
+        Sergei Mikhailovich Prokudin-Gorskii (1863-1944) was a man well ahead of his time. Convinced, as early as 1907, that color photography was the wave of the future, he won Tzar's special permission to travel across the vast Russian Empire and take color photographs of everything he saw including the only color portrait of Leo Tolstoy. And he really photographed everything: people, buildings, landscapes, railroads, bridges... thousands of color pictures! His idea was simple: record three exposures of every scene onto a glass plate using a red, a green, and a blue filter. Never mind that there was no way to print color photographs until much later -- he envisioned special projectors to be installed in "multimedia" classrooms all across Russia where the children would be able to learn about their vast country. Alas, his plans never materialized: he left Russia in 1918, right after the revolution, never to return again. Luckily, his RGB glass plate negatives, capturing the last years of the Russian Empire, survived and were purchased in 1948 by the Library of Congress. The LoC has recently digitized the negatives and made them available on-line. 
+    </p>
+    <p>
+        The goal of this assignment is to take the digitized Prokudin-Gorskii glass plate images and, using image processing techniques, automatically produce a color image with as few visual artifacts as possible. This consists of extracting the three color channel images, placing them on top of each other, and aligning them so that they form a single RGB color image.  
+    </p>
+    <hr>
+    <h2>Approach</h2>
+    <p>
+        With small enough images, I was able to align the green and red channels of the input image to the blue channel primarily using a basic algorithm.  I did preprocessing of cropping the image (1/10 of the pixels along each edge were cropped away) in order to eliminate noise around the edges, then passed this cropped image into the basic algorithm (This technique of cropping helped/didn't hurt all images except for emir; emir is shown uncropped).  The basic algorithm is relatively simple.  It takes in two images and outputs an offset.  It translates a channel across different displacements in the range [-15,15] along both the x and y axes.  At each displacement, it calculates the sum of squared differences (SSD) which is simply sum((image1-image2)^2).  The displacement that corresponds to the minimum SSD is the optimal one.  The three channels are then stacked at their optimal offsets and this results in the color image!
+    </p>
+    <p>
+        While this technique works well with small images, much larger images often have an offset between channels greater than 15 pixels.  In these circumstances, brute forcing is not the best option.  Instead, the pyramid algorithm is used to calculate the offsets for the red and green channels.  The pyramid algorithm recursively resizes the image by a scaling factor (in this case .5).  Once a recursion deepens to the point that the image is a certain size (128^2 pixels), the basic algorithm is used to determine the displacement (this time only in the range [5,5])for this reduced size image.  As the pyramid algorithm recurses back to the top layer, it scales the displacement vector from the previous (more deep) layer by 1/scaling_factor to account for the larger image, then uses that displacement as a center point for the basic algorithm.  This continues until the full size image is reached and a displacement vector for it is returned.  
+    </p>
+    <hr>
+    <h2>Image Results</h2>
+    <p>Following are the image results.  The first column is the raw input pictures containing the three color channel images.  The second column has the color image after alignment using the cropping technique (except for emir) and minimizing sum of squared distances.  The displacement vectors for the red and green filters are included beneath these images.</p>
+    <table width=100%>
+        <tbody>
+            <tr><th colspan="2">cathedral</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/cathedral.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/cathedral.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/cathedral.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(3, 12) Green:(2, 5)</td></tr>
+
+            <tr><th colspan="2">emir</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/emir.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/emir_no_crop.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/emir.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(17, 107) Green:(7, -3)</td></tr>
+
+            <tr><th colspan="2">icon</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/icon.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/icon.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/icon.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(23, 89) Green:(17, 41)</td></tr>
+
+            <tr><th colspan="2">lady</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/lady.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/lady.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/lady.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(11, 112) Green:(9, 51)</td></tr>
+
+            <tr><th colspan="2">melons</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/melons.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/melons.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/melons.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(13, 178) Green:(10, 81)</td></tr>
+
+            <tr><th colspan="2">monastery</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/monastery.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/monastery.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/monastery.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(2, 3) Green:(2, -3)</td></tr>
+
+            <tr><th colspan="2">nativity</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/nativity.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/nativity.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/nativity.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(0, 7) Green:(1, 3)</td></tr>
+
+            <tr><th colspan="2">onion_church</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/onion_church.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/onion_church.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/onion_church.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(36, 108) Green:(26, 51)</td></tr>
+
+            <tr><th colspan="2">three_generations</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/three_generations.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/three_generations.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/three_generations.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(11, 112) Green:(14, 53)</td></tr>
+
+            <tr><th colspan="2">tobolsk</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/tobolsk.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/tobolsk.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/tobolsk.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(3, 6) Green:(3, 3)</td></tr>
+
+            <tr><th colspan="2">train</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/train.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/train.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/train.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(32, 87) Green:(5, 42)</td></tr>
+
+            <tr><th colspan="2">village</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/village.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/village.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/village.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(22, 137) Green:(12, 64)</td></tr>
+
+            <tr><th colspan="2">workshop</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/workshop.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/workshop.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/workshop.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(-12, 105) Green:(0, 53)</td></tr>
+
+        </tbody>
+    </table>
+    <h2>Extra Image Results</h2>
+    <table width=100%>
+        <tbody>
+            <tr><th colspan="2">courtyard</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/courtyard.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/courtyard.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/courtyard.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(1, 8) Green:(1, 3)</td></tr>
+
+            <tr><th colspan="2">floodgates</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/floodgates.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/floodgates.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/floodgates.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(-20, 87) Green:(-11, 33)</td></tr>
+
+            <tr><th colspan="2">pole</th></tr>
+            <tr>
+                <td align="center"><img class="autoResizeTall" src="input/pole.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/pole.jpg"></td>
+                <!-- <td align="center"><img class="autoResizeImage" src="aligned3/pole.jpg"></td> -->
+            </tr>
+            <tr><td/><td align="center">Red:(-6, 11) Green:(-2, 5)</td></tr>
+
+
+        </tbody>
+    </table>
+    <h2>Analysis</h2>
+    <p>
+        Overall, the alignment seemed to work really well for all of the images except for emir.  Neither the cropped version nor the uncropped version produced a good output for that particular photo.  I beleive this is because using SSD directly on the color channels is not the best solution.  That is true because all of the color channels are not expected to have similar values in each pixel.  In order to improve this, I implemented edge detection as a second pre-processing technique as shown in the Bells And Whistles section below.  
+    </p>
+    <h2>Bells And Whistles</h2>
+    <p>
+        In order to improve the image quality and perfect alignment, I implemented the feature of edge detection.  To do edge detection, a sobel filter was simply used as an additional pre-processing step.  Each of the color channels were passed through a sobel filter, resulting in a channel that highlights the edges.  These edge-detection channels are then cropped and used in the basic or pyramid algorithms to generate the offset vectors.  These offset vectors were then used with the original channels to align the color image.  
+    </p>
+    <p>
+        For most of the images, minimizing the SSD on the cropped channels was sufficient; the added preprocessing of edge detection using the sobel filter barely affected the offset vectors (if at all).  However, it made a big difference on the emir image.  Below you can see emir with three different sets of offset vectors.  The first column shows emir generated from simple alignment with no preprocessing.  The second column shows emir generated with the preprocessing of cropping away the edges.  The final column shows emir with proprocessing of both edge detection using the sobel filter and cropping.  The displacement vectors for all three can be found below the images.  
+    </p>
+    <table width=100%>
+        <tbody>
+            <tr><th colspan="3">emir</th></tr>
+            <tr>
+                <!-- <td align="center"><img class="autoResizeTall" src="input/emir.jpg"></td> -->
+                <td align="center"><img class="autoResizeImage" src="aligned2/emir_no_crop.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/emir.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="aligned2/emir_edge.jpg"></td>
+            </tr>
+            <tr><td align="center">Red:(17, 107) Green:(7, -3)</td><td align="center">Red:(-249, 95) Green:(24, 49)</td><td align="center">Red:(40, 107) Green:(24, 49)</td></tr>
+        </tbody>
+    </table>
+</body>
+</html>
