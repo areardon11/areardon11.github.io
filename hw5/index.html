@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style>
+        .autoResizeImage2 {
+            max-width: 30%;
+            height: auto;
+            width: 30%;
+        }
+
+        .autoResizeImage3 {
+            max-width: 60%;
+            height: auto;
+            width: 60%;
+        }
+
+        .autoResizeImage {
+            max-width: 90%;
+            height: auto;
+            width: 90%;
+        }
+
+        th {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <div style="text-align:center">
+        <h1>CS 194-26 Image Manipulation and Computational Photography</h1>
+        <h2>Andrew Reardon</h2>
+        <h3>Project 5: Face Morphing</h3>
+    </div>
+    <hr>
+    <p>
+        Face morphing is an art form that encompasses many processes.  It includes the techniques of seamlessly blending from one face to another, combining multiple faces into a fusion, and extrapolating from various facial averages in order to produce caricature-like results.  
+    </p>
+    <h1>Part 1 Overview and Approach</h1>
+    <p>
+        The first part of the project was creating a morph animation from my face into someone else's.  I chose to morph into Captain America.  To do this, I had to manually label the same points on each of our faces in order to define correspondences.  I then take a weighted average of these two sets of points; the weights in the average depends on the desired warp ratio for the combination of the two images.  This serves as the image template for warping.  I then calculated the Delaunay triangulation between all the averaged points.  I chose Delaunay because it maximizes the smallest angles in the triangulation.  I used this triangulation to calculate the affine transformation from the morph template to each of the source images.  Solving for the affine transformations was simple linear algebra using the vertices of each of the triangles in the combined image triangulation and the corresponding points in the source images.  It follows the following formula of Ax = b.  
+
+    </p>
+    <center><img class="autoResizeImage2" src="input_images/equation.jpg"></center>
+    <p>
+        In this case A is the 3x3 matrix containing the vertices of a given triangle in the combined image triangulation (it has an extra column of ones to account for translation).  x is the 3x2 affine transformation and b is 3x2 matrix of the corresponding points in the source image.  The goal is to solve for the affine transform for all the pixels in this triangle, which can be done by solving for x with an off-the-shelf linear algebra solver.  Once this is done for all of the triangles in the combined image (and both source images), you can simply go pixel by pixel through the combined image, and set its value to the weighted average of the corresponding pixels in the source images.  These corresponding pixels are found by multiplying the affine transforms for the appropriate triangle in the combined image, then interpolating.  I used simple rounding to the nearest pixel in the source images as my interpolation technique and got pretty good results (so I did not bother to include more difficult interpolation techniques).  Do this for every pixel in the combined image to create the result.  In order to create a combined image that is half one of the source images and half of the other, just set the warp fraction and dissolve fraction to .5, which turns the weighted averages into simple averages.  To create a morph animation, I simply created many morphed images, while varying the warp and dissolve fractions of each one from 1 to 0 and stringing these resultant images together. Visual examples of this technique are found below, as well as a 50-50 combined image, and the final morph animation.
+    </p>
+    <h1>Part 1 Results</h1>
+    <table width=100%>
+        <tbody align="center">
+            <tr>
+                <td align="center"><img class="autoResizeImage3" src="input_images/andrew.jpg"></td>
+                <td align="center"><img class="autoResizeImage3" src="input_images/captain_america.jpg"></td> 
+            </tr>
+        </tbody>
+    </table>
+    <center><img class="autoResizeImage2" src="output/triangulation.png"></center>
+    <p>
+        Above is an image that shows the selected points used as correspondences in red.  It also includes the Delaunay triangulation.  This is just for visual reference (it helps to see it directly on one face), because in the algorithm, the Delaunay triangulation is used on the weighted average of the two image correspondece shapes, not each correspondence shape individually.  Below you can see the 50-50 morph of Captain Andrew, and below that is the morph animation from myself into Captain America and vice versa.  
+    </p>
+    <center><img class="autoResizeImage2" src="output/captain_andrew.jpg"></center>
+    <center><img class="autoResizeImage2" src="output/captain_andrew_loop.gif"></center>
+    <br>
+    <br>
+    <h1>Part 2 Overview and Approach</h1>
+    <p>
+        The second part of this project involved computing the mean face given a dataset of annotated faces.  I used the Danish dataset from here http://www2.imm.dtu.dk/~aam/datasets/datasets.html .  In order to compute the average face, one must first compute the average face shape, and then morph each face to that shape and average them all.  I computed the average face shape by first parsing the point correspondences from the Danish dataset and averaging each point.  I then morphed every Danish face into the average shape (which is done by using a warp fraction of 1 and dissolve fraction of 0).  I then computed the average Danish face simply by taking the average of all of these morphed Danish faces.  Finally, I extrapolated from the mean Danish face to create a caracature of my own.  
+    </p>
+    <p>
+        Below you can see the morph of a random Dane into the average shape, and the average Danish face.  I also computed the average male and female Danish faces by doing this same process with the gender-specific sub-populations.  In the results section, you can also see my face warped into the average Danish face shape, and the average Danish face warped into my face shape.  The final image is the characature of my own face extrapolated from the mean.  
+    </p>
+    <h1>Part 2 Results</h1>
+    <table width=100%>
+        <tbody align="center">
+            <tr>
+                <td align="center"><img class="autoResizeImage3" src="input_images/01-1m.jpg"></td>
+                <td align="center"><img class="autoResizeImage3" src="output/morphed_dane.jpg"></td> 
+            </tr>
+            <tr><td>Original Dane</td><td>Dane morphed to average Dane shape</td></tr>
+        </tbody>
+    </table>
+    <table width=100%>
+        <tbody align="center">
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="input_images/avg_male_dane.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="input_images/avg_dane.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="input_images/avg_fem_dane.jpg"></td>
+            </tr>
+            <tr><td>Average Male Dane</td><td>Average Dane</td><td>Average Female Dane</td></tr>
+        </tbody>
+    </table>
+    <table width=100%>
+        <tbody align="center">
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="output/dane_shaped_andrew.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="output/andrew_shaped_dane.jpg"></td>
+            </tr>
+            <tr><td>Dane shaped Andrew</td><td>Andrew shaped average Dane</td></tr>
+        </tbody>
+    </table>
+    <table width=100%>
+        <tbody align="center">
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="input_images/andrew_r.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="output/caricature.jpg"></td>
+            </tr>
+            <tr><td>Original Andrew</td><td>Caricature Andrew</td></tr>
+        </tbody>
+    </table>
+    <!-- <center><img class="autoResizeImage2" src="output/caricature.jpg"></center> -->
+
+
+    <h1>Bells and Whistles</h1>
+    <h3>Change The Gender of My Face</h3>
+    <p>
+        I attempted to make my face look more female.  To do this, I used the average Danish face and average female Danish face already calculated in the previous part.  I found the feminine shape vector by subtracting the correspondence points of the average female from the same points in the average.  I then morphed my own face into a new shape that was the original shape plus a step in the direction of the feminine shape vector.  I also found female colorization by subtracting the average image from the female average image once they were aligned to be the same shape (in this case, the shape of my own face).  I then added some of this female colorization into my own face.  I then made myself look more feminine by doing both of these techniques together.
+    </p>
+    <p>
+        Below you can see the results of my attempted feminization.  As an analysis, I believe I would have received better results if I had compared the man mean to the female mean instead of the absolute mean to the female mean.  I also think it would have improved if I had used a larger average dataset instead of continuing to use the Danish one.  Finally, the last thing I could have done to improve it would have been to include more correspondence points.  
+    </p>
+    <table width=100%>
+        <tbody align="center">
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="input_images/andrew_r.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="output/fem_colored_andrew.jpg"></td> 
+            </tr>
+            <tr><td>Andrew</td><td>Female Colored Andrew</td></tr>
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="output/fem_shaped_andrew.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="output/fem_colored_and_shaped_andrew.jpg"></td> 
+            </tr>
+            <tr><td>Female Shaped Andrew</td><td>Female Colored and Shaped Andrew</td></tr>
+        </tbody>
+    </table>
+    <h3>Make a Morphing Music Video</h3>
+    <p>
+        I made a music video of a chain of face morphs using pictures taken by Martin Schoeller.  It can be viewed at the following link: 
+    </p>
+    <a href="https://www.youtube.com/watch?v=7w1QGby_KYs">https://www.youtube.com/watch?v=7w1QGby_KYs</a>
+    <h3>Produce a Face Morphing Video With Students in the Class</h3>
+    <p>
+        We all collaborated and aligned our images the same way and made sure they had the same dimensions.  Then we shared our images with each other and determined an order.  Each person morphed from him/herself into the next person.  I then compiled everybodys sequences of jpg files and turned them into a music video.  You can view that video <a href="https://www.youtube.com/watch?v=0gp4EWKbIM0">here.</a>
+    </p>
+
+
+
+
+
+
+
+</body>
+</html>
