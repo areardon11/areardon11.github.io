@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style>
+        .autoResizeImage2 {
+            max-width: 30%;
+            height: auto;
+            width: 30%;
+        }
+
+        .autoResizeImage3 {
+            max-width: 60%;
+            height: auto;
+            width: 60%;
+        }
+
+        .autoResizeImage {
+            max-width: 90%;
+            height: auto;
+            width: 90%;
+        }
+
+        th {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+
+    <div style="text-align:center">
+        <h1>CS 194-26 Image Manipulation and Computational Photography</h1>
+        <h2>Andrew Reardon</h2>
+        <h3>Project 7 Part I: Image Warping and Mosaicing</h3>
+    </div>
+    <hr>
+    <p>
+        This project involved image warping and mosaicing.  To begin, I needed good images to warp and stitch together into mosaics.  I took pictures using a high resolution camera at Indian Rock Park and across the UC Berkeley campus.  
+    </p>
+    <p>
+        In order to rectify or mosaic these images, a homography must be used.  A homography is a 3x3 matrix that takes a pixel value from one location to another.  In other words Hp = p'.  Discovering this homography H requires point correspondences p and p' and some linear algebra.  
+    </p>
+    <center><img class="autoResizeImage2" src="input_images/equations1.png"></center>
+    <p>
+        H_22 is simply a scaling factor, so it can be set to 1.  This leaves 8 values in the homography that must be solved for.  We can set up a system of linear equations below to solve for the values in H.  
+    </p>
+    <center><img class="autoResizeImage2" src="input_images/equations2.jpg"></center>
+    <p>
+        Since there are 8 unknowns, we need at least 4 sets of point correspondences to solve for the homography matrix.  It also works in an overconstrained system.  There will likely not be an exact solution, but it can be solved using least squares linear regression.  Having more than 4 sets of point correspondences and solving using least squares helps alleviate noise.  
+    </p>
+    <p>
+        Once a homography is determined, an image can be warped according to that homography.  Because Hp = p', multiplying H by each homogenous point determines that point's new location.  A forward warp simply applies H to every point and copies over the pixel values to their new locations.  However, this can lead to gaps in the result image, so I used inverse warping instead.  Inverse warping applies H^-1 to every point in the result image to find out the corresponding point in the original image and copies its pixel value.  This has the additional problem of needing a size of the result image.  I wrote two functions, one takes in the result image size, the other automatically determines the size of the resulting image by applying H to the corner points in the original image.
+    </p>
+    <p>
+        Below you can see examples of applying my image warping algorithm to images.  I recovered a homography by clicking four points on a plane, then mapping them to pixel values I deemed reasonable to acheive my desired effect.  For example, I wanted to have a bird's eye view of a bridge so I selected four points on the edge of the walkway of the bridge that I figured were roughly square in real life and set their corresponding points to be in a square formation.  I then solved for a homography using these point correspondences and applied the inverse warping algorithm (providing an output image size that was reasonable considering the size of the square I chose).  This produced a ground plane image rectification you can see below.  I also did a similar warp with a wall, but made it be viewed ever so slightly from the other direction.  
+    </p>
+    <table width=100%>
+        <tbody align="center">
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="input_images/bridge.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="output/ground_rect_bridge.jpg"></td> 
+            </tr>
+            <tr><td>Bridge</td><td>Ground Plane Rectified Bridge</td></tr>
+        </tbody>
+    </table>
+
+    <table width=100%>
+        <tbody align="center">
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="input_images/wall.jpg"></td>
+                <td align="center"><img class="autoResizeImage3" src="output/side_rect_wall.jpg"></td> 
+            </tr>
+            <tr><td>Wall</td><td>Rectified Wall from opposite viewpoint</td></tr>
+        </tbody>
+    </table>
+    <br>
+    <br>
+    <p>
+        In order to create a panorama using overlapping images, you must warp them so that the corresponding points overlap, then blend them to remove minor errors and edge artifacts.  I identified corresponding points manually, then used inverse warping to align these points.  This time I piped the corners of all the images being included in the mosaic through their respective homographies to find the resulting output size and set a bounding box.   
+    </p>
+    <p>
+        After warping the images, I blended them together.  I tried two different techniques to do this.  The first technique was multiresolution blending using the laplacian stacks with depth 5 of the two images.  I used which pixels were filled within the bounding box as the binary mask.  I had already implemented this blending technique in project 3.  This blending technique worked well when there weren't strong edge artifacts from overlaying the images.
+    </p>
+    <p>
+        The second blending technique I used was linear blending.  Instead of simply using a binary mask, I computed an alpha channel for each image so that I could use weighted averaging.  I determined each image's alpha channel by copying its binary mask, then setting each value to its current value divided by the distance from the centroid of the binary mask.  For each pixel in the resulting image, I take a weighted average of the two pixels in the warped images determined by the corresponding alpha channels.  This blending technique worked best on images that were aligned very well, and removed edge artifacts nicely.  I hope to combine the two blending techniques for the 2nd part of the project.  Below are my resulting mosaic panoramas.  
+    </p>
+
+    <table width=100%>
+        <tbody align="center">
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="input_images/IMG_1845.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="input_images/IMG_1846.jpg"></td> 
+            </tr>
+        </tbody>
+    </table>
+    <center><img class="autoResizeImage3" src="output/indian_rock_panorama.jpg"></center>
+
+    <table width=100%>
+        <tbody align="center">
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="input_images/IMG_1952.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="input_images/IMG_1953.jpg"></td> 
+            </tr>
+        </tbody>
+    </table>
+    <center><img class="autoResizeImage3" src="output/lions_left_panorama.jpg"></center>
+
+    <table width=100%>
+        <tbody align="center">
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="input_images/window1.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="input_images/window2.jpg"></td> 
+            </tr>
+        </tbody>
+    </table>
+    <center><img class="autoResizeImage3" src="output/window_panorama.jpg"></center>
+
+    <p>
+        I learned a lot of things from this project.  My favorite was definitely ground plane rectification!  I think being able to view an image from a different perspective is really cool.  I also like linear blending.  It is a simple and elegant solution.  
+    </p>
+
+
+</body>
+</html>
