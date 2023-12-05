@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <style>
+        .autoResizeImage {
+            width: 80%;
+            height: auto;
+        }
+
+        .autoResizeImage2 {
+            max-width: 100%;
+            height: auto;
+            width: 100%;
+        }
+
+        .autoResizeImage3 {
+            max-width: 60%;
+            height: auto;
+            width: 60%;
+        }
+
+        th {
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div style="text-align:center">
+        <h1>Photo Mosaic Composition</h1>
+        <h2>Andrew Reardon</h2>
+    </div>
+    <hr>
+    <p>
+        This is a personal project designed to combine many composition images to create a larger mosaic. My goal was to be able to create a mosaic for great memories themed around my family, relationship. The necessary inputs are simply a directory full of photos (minimum number of photos needed is on the order of hundreds) and a reference image for the mosaic. Creating the mosaic is done in 4 steps: <br>
+        0) Crop the Composition Images.<br>
+        1) Resize the Images.<br>
+        2) Arrange the Composition Images.<br>
+        3) Create Mosaic from Reference and Composition Images.
+    </p>
+    <hr>
+    <h1>Step 0: Crop the Composition Images</h1>
+    <p>
+        For simplicity, I decided to crop all of the composition images to squares. This way, the tiling arrangement is trivial because the composition images will be laid out in a grid. The naive initial implementation was to center crop by trimming away an even number or rows/columns from each side of the longer edge. This works well in most cases.
+    </p>
+    <table width=100%>
+        <tbody>
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="hiking_uncropped.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="hiking_center_cropped.jpg"></td>
+            </tr>
+            <tr>
+                <td align="center">Original Image</td>
+                <td align="center">Center Cropped Image</td>
+            </tr>
+        </tbody>
+    </table>
+    <p>
+        However, there are edge cases in which it does not work well. For example, sometimes center cropping cuts off faces. To account for this, I integrated an off the shelf face detector from OpenCV. When there are faces present, the algorithm will identify the total pixel area of the face detections, and then calculate what percentage of that face area would remain after applying center cropping, top/left cropping, and bottom/right cropping. It chooses to go with the crop that retains the greatest amount of face area (with a slight bias toward center cropping).
+    </p>
+    <table width=100%>
+        <tbody>
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="waterfall.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="waterfall_fd.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="waterfall_center_crop_fd.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="waterfall_top_crop_fd.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="waterfall_bottom_crop_fd.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="waterfall_final_crop.jpg"></td>
+            </tr>
+            <tr>
+                <td align="center">Original Image</td>
+                <td align="center">Face Detections</td>
+                <td align="center">Candidate Crop: Center</td>
+                <td align="center">Candidate Crop: Top Removed</td>
+                <td align="center">Candidate Crop: Bottom Removed</td>
+                <td align="center">Crop Selection: Top Removed</td>
+            </tr>
+            <tr>
+                <td align="center"></td>
+                <td align="center"></td>
+                <td align="center">83% of face area</td>
+                <td align="center">100% of face area</td>
+                <td align="center">48% of face area</td>
+                <td align="center"></td>
+            </tr>
+        </tbody>
+    </table>
+    <p>
+        Using face detection helped fix many of the problematically cropped images. However, there were still a few that didn't have any faces that weren't cropped optimally. For a generic detection of what is important, I used an off the shelf OpenCV saliency heatmap. The cropping approach using saliency is similar to the face detection crop approach. Unfortunately, the saliency output was not good enough to use instead of the FD because it seems to simply heavily bias towards contrast/edges (larger faces were not considered salient compared to noisy background). Therefore, the saliency approach was only used when no faces were detected. For the saliency approach, a heatmap was generated for the image. The ratio of remaining heat for each candidate crop are compared to determine the best final crop. A large bias toward the center crop needed to be implemented because the saliency output is not reliable enough to trust it directly.
+    </p>
+    <table width=100%>
+        <tbody>
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="tent.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="tent_center_crop.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="tent_top_crop.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="tent_bottom_crop.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="tent_top_crop.jpg"></td>
+            </tr>
+            <tr>
+                <td align="center">Original Image</td>
+                <td align="center">Candidate Crop: Center</td>
+                <td align="center">Candidate Crop: Top Removed</td>
+                <td align="center">Candidate Crop: Bottom Removed</td>
+                <td align="center">Crop Selection: Top Removed</td>
+            </tr>
+            <tr>
+                <td align="center"></td>
+                <td align="center">48% of saliency</td>
+                <td align="center">89% of saliency</td>
+                <td align="center">33% of saliency</td>
+                <td align="center"></td>
+            </tr>
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="tent_saliency.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="tent_saliency_center_crop.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="tent_saliency_top_crop.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="tent_saliency_bottom_crop.jpg"></td>
+                <td align="center"></td>
+            </tr>
+        </tbody>
+    </table>
+    <hr>
+    <h1>Step 1: Resize the Images</h1>
+    <p>
+        TODO: Fill in details.
+    </p>
+    <hr>
+    <h1>Step 2: Arrange the Composition Images</h1>
+    <p>
+        TODO: Fill in details.
+    </p>
+    <hr>
+    <h1>Step 3: Create Mosaic from Reference and Composition Images</h1>
+    <p>
+        TODO: Fill in details.
+    </p>
+</body>
+</html>
