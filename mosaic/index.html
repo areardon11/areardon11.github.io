@@ -32,11 +32,11 @@
     </div>
     <hr>
     <p>
-        This is a personal project designed to combine many composition images to create a larger mosaic. My goal was to be able to create a mosaic for great memories themed around my family, relationship. The necessary inputs are simply a directory full of photos (minimum number of photos needed is on the order of hundreds) and a reference image for the mosaic. Creating the mosaic is done in 4 steps: <br>
+        This is a personal project designed to combine many composition images to create a larger mosaic. My goal was to be able to create a mosaic for great memories themed around my family, relationship, friends, vacation, or any other occasion. The necessary inputs are simply a directory full of photos (minimum number of photos needed is on the order of hundreds) and a reference image for the mosaic. Creating the mosaic is done in 4 steps: <br>
         0) Crop the Composition Images.<br>
         1) Resize the Images.<br>
         2) Arrange the Composition Images.<br>
-        3) Create Mosaic from Reference and Composition Images.
+        3) Create Mosaic from Reference Image and Arranged Composition Images.
     </p>
     <hr>
     <h1>Step 0: Crop the Composition Images</h1>
@@ -124,7 +124,7 @@
     <hr>
     <h1>Step 1: Resize the Images</h1>
     <p>
-        TODO: Fill in details.
+        In order for the mosaic reference image to fit well with the cropped composition images, both need to be resized. First, the mosaic reference image has its edges trimmed so that the number of pixels is divisible by the number of composition images that make up each dimension. Then, the mosaic image is scaled up so that composition images don't need to shrink by too much and can retain some detail. Finally, the cropped composition images are scaled down so that they fit evenly as subsections of the mosaic reference image. At the end of this step, all images (mosaic reference image and composition images) should be the desired resolution.
     </p>
     <hr>
     <h1>Step 2: Arrange the Composition Images</h1>
@@ -132,9 +132,48 @@
         TODO: Fill in details.
     </p>
     <hr>
-    <h1>Step 3: Create Mosaic from Reference and Composition Images</h1>
+    <h1>Step 3: Create Mosaic from Reference Image and Arranged Composition Images</h1>
     <p>
-        TODO: Fill in details.
+        At this stage, we have an arrangment of composition images and a reference mosaic image of the same size. The simplest way to combine these two is to take a weighted average (pixel-wise) of the two images. This was the initial approach, and yielded decent combination results. Here is an example of the first combination effort:
+    </p>
+    <center><img class="autoResizeImage" src="mosaic_image_composition.jpg"></center>
+    <p>
+        While these results are pretty good, the combination of the reference and arrangement into a mosaic could be improved. First, I improved the color of the composition images by tinting each one based on the median color in the same region of the mosaic reference image. Notice how in the example below the arranged composition images have the general trend of matching the reference image (blue and white images seem to be where there are similar shirt colors in the reference image). However, the tinting makes the composition arrangement look much more like the reference image.
+    </p>
+    <table width=100%>
+        <tbody>
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="PXL_20231223_233426799_resized.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="PXL_20231223_233426799_arranged.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="PXL_20231223_233426799_tinted.jpg"></td>
+            </tr>
+            <tr>
+                <td align="center">Reference Image</td>
+                <td align="center">Arranged Composition Images</td>
+                <td align="center">Tinted Composition Image Arrangement</td>
+            </tr>
+        </tbody>
+    </table>
+    <p>
+        In addition to tinting to make the colors match better, it makes sense to improve the combination of these images by blending based on frequency. Without any frequency based blending, the high frequencies (sharp edges) from the reference image can distract from the details in the composition images when trying to view individual composition images up close. For more details on frequency blending, see <a href="https://areardon11.github.io/hw3/">this project</a> in my computational photography class. To perform frequency based blending, I smoothed the reference image by convolving with a 2d gaussian (approximating a low pass filter). I also sharpened the tinted composition arrangement by adding the high frequency content (high_freq = original-blurred) back into the original image. This helps make each composition image easier to distinguish from the reference image. See the below examples of final mosaic cutouts with and without frequency blending is applied.
+    </p>
+    <table width=100%>
+        <tbody>
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="PXL_20231223_233426799_resized.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="PXL_20231223_233426799_arranged.jpg"></td>
+            </tr>
+            <tr>
+                <td align="center">Without Frequency Blending</td>
+                <td align="center">Frequency Blended (smoothed reference & sharpened tinted arrangement)</td>
+            </tr>
+        </tbody>
+    </table>
+    <p>
+        TODO: Generate images to showcase the frequency blending above.
+    </p>
+    <p>
+        TODO: Fill in details to show keeping high frequency for faces in the reference image.
     </p>
 </body>
 </html>
