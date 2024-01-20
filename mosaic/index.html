@@ -138,7 +138,7 @@
     </p>
     <center><img class="autoResizeImage" src="mosaic_image_composition.jpg"></center>
     <p>
-        While these results are pretty good, the combination of the reference and arrangement into a mosaic could be improved. First, I improved the color of the composition images by tinting each one based on the median color in the same region of the mosaic reference image. Notice how in the example below the arranged composition images have the general trend of matching the reference image (blue and white images seem to be where there are similar shirt colors in the reference image). However, the tinting makes the composition arrangement look much more like the reference image.
+        While these results are pretty good, the combination of the reference and arrangement into a mosaic could be improved. First, I improved the color of the composition images by tinting each one based on the median color in the same region of the mosaic reference image. Notice how in the example below the arranged composition images have the general trend of matching the reference image (blue and white images seem to be where there are similar shirt colors in the reference image). The tinting makes the composition arrangement look much more like the reference image.
     </p>
     <table width=100%>
         <tbody>
@@ -160,8 +160,8 @@
     <table width=100%>
         <tbody>
             <tr>
-                <td align="center"><img class="autoResizeImage" src="PXL_20231223_233426799_resized.jpg"></td>
-                <td align="center"><img class="autoResizeImage" src="PXL_20231223_233426799_arranged.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="without_freq_blending.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="with_freq_blending.jpg"></td>
             </tr>
             <tr>
                 <td align="center">Without Frequency Blending</td>
@@ -170,10 +170,59 @@
         </tbody>
     </table>
     <p>
-        TODO: Generate images to showcase the frequency blending above.
+        The above cutouts demonstrate how frequency blending brings allows the individual composition images to show through much better when looking closely at the mosaic. The fact that the mosaic as a whole loses fine detail usually isn't a problem. The edge case is that faces, especially eyes, in the mosaic are then blurry. While it is fine (maybe even desireable) to have the background blurry (such as the bridge in the above examples), this is not good for the faces/eyes of the subject. See original mosaic composition below for an example. Notice how the faces/eyes are blurry, which detracts from the image quality.
     </p>
+    <center><img class="autoResizeImage" src="PXL_20231223_233426799_composition_OG.jpg"></center>
     <p>
-        TODO: Fill in details to show keeping high frequency for faces in the reference image.
+        To get around this, I used a mask to blend the original reference image with the smoothed version. The mask was created by applying a 2d gaussian anywhere there is a face detection. It is important to also take the max of the new gaussian and the original mask to prevent overlapping face detections resulting in poor mask restuls. See the below for an example.
     </p>
+    <table width=100%>
+        <tbody>
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="selfie_fd.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="selfie_bad_mask.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="selfie_good_mask.jpg"></td>
+            </tr>
+            <tr>
+                <td align="center">Face Detections</td>
+                <td align="center">Bad Mask</td>
+                <td align="center">Good Mask</td>
+            </tr>
+        </tbody>
+    </table>
+    <p>
+        Once the mask is created, it is used to blend the original reference image with the smoothed version to have an improved smoothed image that keeps faces sharp.
+    </p>
+    <table width=100%>
+        <tbody>
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="family_faces.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="family_mask.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="PXL_20231223_233426799_smoothed_original.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="PXL_20231223_233426799_smoothed.jpg"></td>
+            </tr>
+            <tr>
+                <td align="center">Original Reference Image with Face Detections</td>
+                <td align="center">Mask</td>
+                <td align="center">Smoothed Reference Image</td>
+                <td align="center">Updated Smoothed Reference Image (with sharp faces)</td>
+            </tr>
+        </tbody>
+    </table>
+    <p>
+        The resulting updated smoothed image looks a little bit creepy. But since this smoothed image is blended with the sharpened composition arrangement anyway, it isn't noticeable in the final mosaic. After comparing the final mosaic using the orignal smoothed reference image vs. using the updated smoothed reference image, it is clear that the updated version yields better results. The faces in the mosaic retain sharpness while still gaining the benefits of being able to view the composition images up close without high frequency content from the reference interfering (in most of the image).
+    </p>
+    <table width=100%>
+        <tbody>
+            <tr>
+                <td align="center"><img class="autoResizeImage" src="PXL_20231223_233426799_composition_OG.jpg"></td>
+                <td align="center"><img class="autoResizeImage" src="PXL_20231223_233426799_composition.jpg"></td>
+            </tr>
+            <tr>
+                <td align="center">Original Mosaic (using full smoothing)</td>
+                <td align="center">Updated Mosaic (retaining face sharpness in smoothed reference)</td>
+            </tr>
+        </tbody>
+    </table>
 </body>
 </html>
